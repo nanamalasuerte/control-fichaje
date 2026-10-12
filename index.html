@@ -112,7 +112,7 @@
                     salidaTime: null,
                     horasTotales: '---'
                 });
-                mostrarAlerta(`Entrada registrada para ${nombre} a las${horaTexto}`, 'exito');
+                mostrarAlerta(`Entrada registrada para ${nombre} a las ${horaTexto}`, 'exito');
             } else if (tipo === 'Salida') {
                 // Buscar el último registro abierto de este empleado
                 let registroAbierto = registros.slice().reverse().find(r => r.nombre.toLowerCase() === nombre.toLowerCase() && !r.salidaTime);
@@ -128,4 +128,57 @@
                 // Calcular horas trabajadas
                 const diferenciaMs = timestamp - registroAbierto.entradaTime;
                 const horas = (diferenciaMs / (1000 * 60 * 60)).toFixed(2);
-                registroAbierto.horasTotales = `${horas
+                registroAbierto.horasTotales = `${horas} hrs`;
+
+                mostrarAlerta(`Salida registrada para ${nombre}. Total servicio: ${horas} hrs`, 'exito');
+            }
+
+            localStorage.setItem('fichajes_semanales', JSON.stringify(registros));
+            document.getElementById('nombre-empleado').value = '';
+        }
+
+        function mostrarAlerta(texto, tipo) {
+            const alerta = document.getElementById('mensaje-alerta');
+            alerta.innerText = texto;
+            if (tipo === 'exito') {
+                alerta.className = "p-3 rounded-lg text-center text-sm font-medium bg-green-100 text-green-700";
+            } else {
+                alerta.className = "p-3 rounded-lg text-center text-sm font-medium bg-red-100 text-red-700";
+            }
+            alerta.classList.remove('hidden');
+            setTimeout(() => alerta.classList.add('hidden'), 5000);
+        }
+
+        function cargarTablaAdmin() {
+            const tbody = document.getElementById('tabla-registros');
+            tbody.innerHTML = '';
+            let registros = JSON.parse(localStorage.getItem('fichajes_semanales')) || [];
+
+            if(registros.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">No hay registros esta semana.</td></tr>`;
+                return;
+            }
+
+            registros.forEach(reg => {
+                let tr = document.createElement('tr');
+                tr.className = "border-b hover:bg-gray-50";
+                tr.innerHTML = `
+                    <td class="p-2 border font-medium">${reg.nombre}</td>
+                    <td class="p-2 border text-gray-600">${reg.entradaTexto}</td>
+                    <td class="p-2 border text-gray-600">${reg.salidaTexto}</td>
+                    <td class="p-2 border font-bold text-blue-700">${reg.horasTotales}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function reiniciarSemana() {
+            if(confirm("¿Estás seguro de que deseas reiniciar la semana? Se borrarán todos los registros acumulados.")) {
+                localStorage.removeItem('fichajes_semanales');
+                cargarTablaAdmin();
+                alert("La semana ha sido reiniciada correctamente.");
+            }
+        }
+    </script>
+</body>
+</html>
