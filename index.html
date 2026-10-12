@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Asistencia</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Tailwind CSS Estable -->
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col justify-between font-sans">
 
@@ -27,8 +28,8 @@
             </div>
 
             <div class="grid grid-cols-2 gap-4 mb-4">
-                <button onclick="registrarAccion('Entrada')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition shadow text-lg">📥 Entrada</button>
-                <button onclick="registrarAccion('Salida')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition shadow text-lg">📤 Salida</button>
+                <button type="button" onclick="registrarAccion('Entrada')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition shadow text-lg">📥 Entrada</button>
+                <button type="button" onclick="registrarAccion('Salida')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition shadow text-lg">📤 Salida</button>
             </div>
 
             <div id="mensaje-alerta" class="hidden p-3 rounded-lg text-center text-sm font-medium mb-4"></div>
@@ -37,14 +38,14 @@
             <div id="seccion-copiar" class="hidden mt-4 p-4 bg-gray-50 border border-gray-300 rounded-lg">
                 <div class="flex justify-between items-center mb-2">
                     <span class="text-xs font-bold text-gray-600 uppercase">Información para copiar:</span>
-                    <button onclick="copiarAlPortapapeles()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1 px-3 rounded transition shadow">📋 Copiar Texto</button>
+                    <button type="button" onclick="copiarAlPortapapeles()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1 px-3 rounded transition shadow">📋 Copiar Texto</button>
                 </div>
                 <div id="texto-resultado" class="bg-white p-3 border rounded text-sm font-mono text-gray-800 select-all whitespace-pre-line"></div>
             </div>
 
-            <!-- Botón de Reiniciar Semana desde la vista principal -->
+            <!-- Botón de Reiniciar Semana -->
             <div class="mt-6 pt-4 border-t border-gray-200">
-                <button onclick="reiniciarSemana()" class="w-full bg-red-100 hover:bg-red-200 text-red-700 font-bold py-2 px-4 rounded-lg text-sm transition border border-red-300">🔄 Reiniciar la Semana (Borrar Datos)</button>
+                <button type="button" onclick="reiniciarSemana()" class="w-full bg-red-100 hover:bg-red-200 text-red-700 font-bold py-2 px-4 rounded-lg text-sm transition border border-red-300">🔄 Reiniciar la Semana (Borrar Datos)</button>
             </div>
         </div>
 
@@ -52,7 +53,7 @@
         <div id="vista-admin" class="bg-white p-6 rounded-xl shadow-md hidden">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold text-gray-800">Resumen Semanal de Servicio</h2>
-                <button onclick="cambiarVista('fichaje')" class="text-blue-600 text-sm hover:underline font-bold">← Volver</button>
+                <button type="button" onclick="cambiarVista('fichaje')" class="text-blue-600 text-sm hover:underline font-bold">← Volver</button>
             </div>
 
             <div class="overflow-x-auto max-h-96">
@@ -72,7 +73,7 @@
             </div>
 
             <div class="mt-6 pt-4 border-t border-gray-200">
-                <button onclick="reiniciarSemana()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition shadow">⚠️ Reiniciar la Semana (Borrar Todo)</button>
+                <button type="button" onclick="reiniciarSemana()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition shadow">⚠️ Reiniciar la Semana (Borrar Todo)</button>
             </div>
         </div>
 
@@ -101,7 +102,8 @@
         }
 
         function registrarAccion(tipo) {
-            const nombre = document.getElementById('nombre-empleado').value.trim();
+            const inputNombre = document.getElementById('nombre-empleado');
+            const nombre = inputNombre.value.trim();
             const alerta = document.getElementById('mensaje-alerta');
             const seccionCopiar = document.getElementById('seccion-copiar');
             const textoResultado = document.getElementById('texto-resultado');
@@ -155,7 +157,7 @@
 
             localStorage.setItem('fichajes_semanales', JSON.stringify(registros));
 
-            // Mostrar el bloque listo para copiar y pegar
+            // Generar y mostrar el texto para copiar
             if (datosFichajeActual) {
                 const textoFormateado = 
 `- **Nombre y Apellido:** ${datosFichajeActual.nombre}
@@ -163,17 +165,17 @@
 - **Salida:** ${datosFichajeActual.salidaTexto}
 - **Horas totales en servicio:** ${datosFichajeActual.horasTotales}`;
 
-                textoResultado.innerText = textoFormateado;
+                textoResultado.textContent = textoFormateado;
                 seccionCopiar.classList.remove('hidden');
             }
         }
 
         function copiarAlPortapapeles() {
-            const texto = document.getElementById('texto-resultado').innerText;
+            const texto = document.getElementById('texto-resultado').textContent;
             navigator.clipboard.writeText(texto).then(() => {
                 alert("¡Información copiada al portapapeles!");
-            }).catch(err => {
-                alert("No se pudo copiar automáticamente. Puedes seleccionarlo y copiarlo manualmente.");
+            }).catch(() => {
+                alert("Selecciona el texto en la casilla y copia manualmente.");
             });
         }
 
@@ -209,3 +211,17 @@
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function reiniciarSemana() {
+            if(confirm("¿Estás seguro de que deseas reiniciar la semana? Se borrarán todos los registros acumulados.")) {
+                localStorage.removeItem('fichajes_semanales');
+                const seccion = document.getElementById('seccion-copiar');
+                if(seccion) seccion.classList.add('hidden');
+                cargarTablaAdmin();
+                alert("La semana ha sido reiniciada correctamente.");
+            }
+        }
+    </script>
+</body>
+</html>
