@@ -41,6 +41,11 @@
                 </div>
                 <div id="texto-resultado" class="bg-white p-3 border rounded text-sm font-mono text-gray-800 select-all whitespace-pre-line"></div>
             </div>
+
+            <!-- Botón de Reiniciar Semana desde la vista principal -->
+            <div class="mt-6 pt-4 border-t border-gray-200">
+                <button onclick="reiniciarSemana()" class="w-full bg-red-100 hover:bg-red-200 text-red-700 font-bold py-2 px-4 rounded-lg text-sm transition border border-red-300">🔄 Reiniciar la Semana (Borrar Datos)</button>
+            </div>
         </div>
 
         <!-- VISTA: ADMIN -->
@@ -121,9 +126,9 @@
                     nombre: nombre,
                     entradaTexto: horaTexto,
                     entradaTime: timestamp,
-                    salidaTexto: 'En servicio...',
+                    salidaTexto: '',
                     salidaTime: null,
-                    horasTotales: '---'
+                    horasTotales: ''
                 };
                 registros.push(nuevoRegistro);
                 datosFichajeActual = nuevoRegistro;
@@ -204,15 +209,3 @@
                 `;
                 tbody.appendChild(tr);
             });
-        }
-
-        function reiniciarSemana() {
-            if(confirm("¿Estás seguro de que deseas reiniciar la semana? Se borrarán todos los registros acumulados.")) {
-                localStorage.removeItem('fichajes_semanales');
-                cargarTablaAdmin();
-                alert("La semana ha sido reiniciada correctamente.");
-            }
-        }
-    </script>
-</body>
-</html>
