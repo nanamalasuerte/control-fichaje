@@ -10,7 +10,7 @@
 
     <!-- Encabezado -->
     <header class="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center">
-        <h1 class="text-xl font-bold">⏱️ Control de Horas y Asistencia</h1>
+        <h1 class="text-xl font-bold">⏱️ Control de Asistencia</h1>
         <button onclick="cambiarVista('admin')" class="bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded text-sm transition">Panel Admin</button>
     </header>
 
@@ -31,7 +31,16 @@
                 <button onclick="registrarAccion('Salida')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition shadow text-lg">📤 Salida</button>
             </div>
 
-            <div id="mensaje-alerta" class="hidden p-3 rounded-lg text-center text-sm font-medium"></div>
+            <div id="mensaje-alerta" class="hidden p-3 rounded-lg text-center text-sm font-medium mb-4"></div>
+
+            <!-- Sección de Resultado para Copiar y Pegar -->
+            <div id="seccion-copiar" class="hidden mt-4 p-4 bg-gray-50 border border-gray-300 rounded-lg">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold text-gray-600 uppercase">Información para copiar:</span>
+                    <button onclick="copiarAlPortapapeles()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1 px-3 rounded transition shadow">📋 Copiar Texto</button>
+                </div>
+                <div id="texto-resultado" class="bg-white p-3 border rounded text-sm font-mono text-gray-800 select-all whitespace-pre-line"></div>
+            </div>
         </div>
 
         <!-- VISTA: ADMIN -->
@@ -73,7 +82,7 @@
         function cambiarVista(vista) {
             if(vista === 'admin') {
                 let password = prompt("Introduce la contraseña de administrador:");
-                if(password !== "1234") { // Contraseña por defecto
+                if(password !== "1234") {
                     alert("Contraseña incorrecta");
                     return;
                 }
@@ -89,11 +98,14 @@
         function registrarAccion(tipo) {
             const nombre = document.getElementById('nombre-empleado').value.trim();
             const alerta = document.getElementById('mensaje-alerta');
+            const seccionCopiar = document.getElementById('seccion-copiar');
+            const textoResultado = document.getElementById('texto-resultado');
 
             if(!nombre) {
                 alerta.className = "p-3 rounded-lg text-center text-sm font-medium bg-red-100 text-red-700";
                 alerta.innerText = "Por favor, ingresa tu Nombre y Apellido.";
                 alerta.classList.remove('hidden');
+                seccionCopiar.classList.add('hidden');
                 return;
             }
 
@@ -101,40 +113,63 @@
             const ahora = new Date();
             const timestamp = ahora.getTime();
             const horaTexto = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (' + ahora.toLocaleDateString() + ')';
+            
+            let datosFichajeActual = null;
 
             if (tipo === 'Entrada') {
-                // Crear un nuevo registro de turno
-                registros.push({
+                const nuevoRegistro = {
                     nombre: nombre,
                     entradaTexto: horaTexto,
                     entradaTime: timestamp,
                     salidaTexto: 'En servicio...',
                     salidaTime: null,
                     horasTotales: '---'
-                });
-                mostrarAlerta(`Entrada registrada para ${nombre} a las ${horaTexto}`, 'exito');
+                };
+                registros.push(nuevoRegistro);
+                datosFichajeActual = nuevoRegistro;
+                mostrarAlerta(`Entrada registrada para ${nombre}`, 'exito');
             } else if (tipo === 'Salida') {
-                // Buscar el último registro abierto de este empleado
                 let registroAbierto = registros.slice().reverse().find(r => r.nombre.toLowerCase() === nombre.toLowerCase() && !r.salidaTime);
 
                 if (!registroAbierto) {
                     mostrarAlerta(`No hay registro de entrada activo para ${nombre}.`, 'error');
+                    seccionCopiar.classList.add('hidden');
                     return;
                 }
 
                 registroAbierto.salidaTexto = horaTexto;
                 registroAbierto.salidaTime = timestamp;
 
-                // Calcular horas trabajadas
                 const diferenciaMs = timestamp - registroAbierto.entradaTime;
                 const horas = (diferenciaMs / (1000 * 60 * 60)).toFixed(2);
                 registroAbierto.horasTotales = `${horas} hrs`;
 
-                mostrarAlerta(`Salida registrada para ${nombre}. Total servicio: ${horas} hrs`, 'exito');
+                datosFichajeActual = registroAbierto;
+                mostrarAlerta(`Salida registrada para ${nombre}. Total: ${horas} hrs`, 'exito');
             }
 
             localStorage.setItem('fichajes_semanales', JSON.stringify(registros));
-            document.getElementById('nombre-empleado').value = '';
+
+            // Mostrar el bloque listo para copiar y pegar
+            if (datosFichajeActual) {
+                const textoFormateado = 
+`- **Nombre y Apellido:** ${datosFichajeActual.nombre}
+- **Entrada:** ${datosFichajeActual.entradaTexto}
+- **Salida:** ${datosFichajeActual.salidaTexto}
+- **Horas totales en servicio:** ${datosFichajeActual.horasTotales}`;
+
+                textoResultado.innerText = textoFormateado;
+                seccionCopiar.classList.remove('hidden');
+            }
+        }
+
+        function copiarAlPortapapeles() {
+            const texto = document.getElementById('texto-resultado').innerText;
+            navigator.clipboard.writeText(texto).then(() => {
+                alert("¡Información copiada al portapapeles!");
+            }).catch(err => {
+                alert("No se pudo copiar automáticamente. Puedes seleccionarlo y copiarlo manualmente.");
+            });
         }
 
         function mostrarAlerta(texto, tipo) {
@@ -146,7 +181,6 @@
                 alerta.className = "p-3 rounded-lg text-center text-sm font-medium bg-red-100 text-red-700";
             }
             alerta.classList.remove('hidden');
-            setTimeout(() => alerta.classList.add('hidden'), 5000);
         }
 
         function cargarTablaAdmin() {
